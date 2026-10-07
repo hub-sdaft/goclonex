@@ -1,0 +1,40 @@
+version: 2
+
+env:
+  - GO111MODULE=on
+  - CGO_ENABLED=0
+
+before:
+  hooks:
+    - go mod tidy
+    - go mod download
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    main: ./cmd/goclone/main.go
+    binary: goclone
+    flags:
+      - -buildvcs=true
+    ldflags:
+      - -s -w
+      - -X sigs.k8s.io/release-utils/version.gitVersion={{.Version}}
+      - -X sigs.k8s.io/release-utils/version.gitCommit={{.Commit}}
+      - -X sigs.k8s.io/release-utils/version.buildDate={{ .Date }}
+
+archives:
+  - formats: [binary]
+    name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}-{{ .Arch }}"
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "README"
+      - Merge pull request
+      - Merge branch
