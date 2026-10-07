@@ -1,5 +1,4 @@
-> This is a personalized fork of [goclone-dev/goclone](https://github.com/goclone-dev/goclone), but I'm
-> not using GitHub's fork functionality
+> **ATTENTION!** This is a customized fork of [goclone-dev/goclone](https://github.com/goclone-dev/goclone) that I use for personal projects. It contains new untested features (that I might merge in the future) and **its original commit history has been rewritten** to reduce the repo's size on disk (it was 100MB!).
 
 <p align="center">
   <a href="https://goclone.io/">
