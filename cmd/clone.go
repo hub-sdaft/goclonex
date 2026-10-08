@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goclone-dev/goclone/pkg/crawler"
-	"github.com/goclone-dev/goclone/pkg/file"
-	"github.com/goclone-dev/goclone/pkg/html"
-	"github.com/goclone-dev/goclone/pkg/parser"
-	"github.com/goclone-dev/goclone/pkg/server"
+	"github.com/hub-sdaft/goclonex/pkg/crawler"
+	"github.com/hub-sdaft/goclonex/pkg/file"
+	"github.com/hub-sdaft/goclonex/pkg/html"
+	"github.com/hub-sdaft/goclonex/pkg/parser"
+	"github.com/hub-sdaft/goclonex/pkg/server"
 )
 
 // CloneOptions contains all the options for the cloning process

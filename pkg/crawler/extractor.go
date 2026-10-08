@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/goclone-dev/goclone/pkg/parser"
+	"github.com/hub-sdaft/goclonex/pkg/parser"
 )
 
 // file extension map for directing files to their proper directory in O(1) time

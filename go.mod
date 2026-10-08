@@ -1,4 +1,4 @@
-module github.com/goclone-dev/goclone
+module github.com/hub-sdaft/goclonex
 
 go 1.25.0
 
