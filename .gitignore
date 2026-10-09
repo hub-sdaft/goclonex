@@ -4,3 +4,4 @@
 pkg/parser/domains.csv
 **/*dist
 **/*.idea/
+.mailmap
