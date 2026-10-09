@@ -2,6 +2,8 @@ module github.com/hub-sdaft/goclonex
 
 go 1.25.0
 
+retract v1.0.0 // contains critical bug I did not see
+
 require (
 	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/fatih/color v1.19.0
