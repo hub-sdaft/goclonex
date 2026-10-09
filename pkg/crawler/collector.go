@@ -6,8 +6,10 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"strings"
+	"sync"
 
 	"github.com/gocolly/colly/v2"
+	"github.com/hub-sdaft/goclonex/pkg/project"
 )
 
 // Collector searches for css, js, and images within a given link
@@ -68,6 +70,83 @@ func Collector(ctx context.Context, url string, projectPath string, cookieJar *c
 		return err
 	}
 	c.Wait()
+	return nil
+}
+
+func ProjectCollector(ctx context.Context, p *project.Project, opt CrawlOptions) error {
+	url := p.Url()
+
+	workers := [](func()){}
+
+	createWorker := func(link string, e *colly.HTMLElement) (func()) {
+		return func() {
+			if err := ProjectExtractor(e.Request.AbsoluteURL(link), p); err != nil {
+				fmt.Printf("warning: failed to extract %s: %v\n", link, err)
+			}
+		}
+	}
+
+	// First, download the main HTML file
+	fmt.Printf("Downloading main HTML from: %s\n", url)
+	if err := ProjectHTMLExtractor(p); err != nil {
+		return fmt.Errorf("failed to download main HTML: %v", err)
+	}
+
+	// create a new collector
+	c := colly.NewCollector(colly.Async(true))
+	setUpCollector(c, ctx, opt.CookieJar, opt.Proxy, opt.UserAgent)
+
+	if !opt.IgnoreCSS {
+		// search for all link tags that have a rel attribute that is equal to stylesheet - CSS
+		c.OnHTML("link[rel='stylesheet']", func(e *colly.HTMLElement) {
+			link := e.Attr("href") // hyperlink reference
+			fmt.Println("Css found", "-->", link)
+			
+			// add worker
+			workers = append(workers, createWorker(link, e))
+		})
+	}
+
+	if !opt.IgnoreJS {
+		// search for all script tags with src attribute -- JS
+		c.OnHTML("script[src]", func(e *colly.HTMLElement) {
+			link := e.Attr("src") // src attribute
+			fmt.Println("Js found", "-->", link)
+			
+			// add worker
+			workers = append(workers, createWorker(link, e))
+		})
+	}
+
+	if !opt.IgnoreImages {
+		// serach for all img tags with src attribute -- Images
+		c.OnHTML("img[src]", func(e *colly.HTMLElement) {
+			link := e.Attr("src") // src attribute
+			if strings.HasPrefix(link, "data:image") || strings.HasPrefix(link, "blob:") {
+				return
+			}
+			fmt.Println("Img found", "-->", link)
+			
+			// add worker
+			workers = append(workers, createWorker(link, e))
+		})
+	}
+
+	// Visit each url and wait for stuff to load :)
+	if err := c.Visit(url); err != nil {
+		return err
+	}
+	c.Wait()
+
+	// Extract pages in parallel
+	var wg sync.WaitGroup
+
+	for _, worker := range workers {
+		wg.Go(worker)
+	}
+
+	wg.Wait()
+
 	return nil
 }
 

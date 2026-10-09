@@ -7,7 +7,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/hub-sdaft/goclonex/pkg/file"
 	"github.com/hub-sdaft/goclonex/pkg/parser"
+	"github.com/hub-sdaft/goclonex/pkg/project"
 )
 
 // file extension map for directing files to their proper directory in O(1) time
@@ -19,6 +21,7 @@ var (
 		".jpeg": "imgs",
 		".gif":  "imgs",
 		".png":  "imgs",
+		".webp": "imgs",
 		".svg":  "imgs",
 	}
 )
@@ -58,18 +61,59 @@ func Extractor(link string, projectPath string) error {
 	return nil
 }
 
+func ProjectExtractor(link string, proj *project.Project) error {
+	fmt.Println("Extracting --> ", link)
+
+	// get the html body
+	resp, err := http.Get(link)
+	if err != nil {
+		return fmt.Errorf("failed to GET %s: %w", link, err)
+	}
+
+	// Closure
+	defer resp.Body.Close()
+
+	// Get the original filename from the URL
+	base := parser.URLFilename(link)
+	// Get the clean extension
+	ext := parser.URLExtension(link)
+
+	// checks if there was a valid extension
+	if ext != "" {
+		// checks if that extension has a directory path name associated with it
+		// from the extensionDir map
+		dirPath := file.FolderFromExtension(ext)
+
+		// Read file content from HTML req
+		content, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read response body: %w", err)
+		}
+
+		err = proj.AddFile(project.File{
+			Name: base,
+			Content: content,
+		}, dirPath)
+		if err != nil {
+			return fmt.Errorf("cannot add %s to project: %w", link, err)
+		}
+	}
+	return nil
+}
+
+
 func writeFileToPath(projectPath, filename, fileDir string, resp *http.Response) error {
 	// Create the full path
 	fullPath := filepath.Join(projectPath, fileDir, filename)
 
 	// Create the directory if it doesn't exist
-	err := os.MkdirAll(filepath.Dir(fullPath), 0777)
+	err := os.MkdirAll(filepath.Dir(fullPath), 0777)	// XXX
 	if err != nil {
 		return fmt.Errorf("failed to create directories for %s: %w", fullPath, err)
 	}
 
 	// Open the file for writing
-	f, err := os.OpenFile(fullPath, os.O_RDWR|os.O_CREATE, 0777)
+	f, err := os.OpenFile(fullPath, os.O_RDWR|os.O_CREATE, 0777)	// XXX
 	if err != nil {
 		return fmt.Errorf("failed to open file %s: %w", fullPath, err)
 	}

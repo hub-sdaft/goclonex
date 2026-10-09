@@ -25,7 +25,9 @@ Copy websites to your computer! Goclone is a utility that allows you to download
 - [Installation](#installation)
   - [Brew](#brew)
   - [Manual](#manual)
-- [Examples](#examples)
+- [Tool usage](#tool-usage)
+  - [Examples](#tool-examples)
+- [Package usage](#package-usage)
 - [Contributors](#contributors)
 
 <a name="installation"></a>
@@ -64,18 +66,9 @@ go build -o goclone cmd/goclone/main.go
 mv goclone /usr/local/bin/
 ```
 
-<a name="examples"></a>
+<a name="tool-usage"></a>
 
-## Examples
-
-```bash
-# goclone <url>
-goclone https://configtree.co
-```
-
-![Config](/docs/media/config.gif)
-
-## Usage
+## Tool Usage
 
 ```
 Usage:
@@ -90,6 +83,46 @@ Flags:
   -P, --servePort int         Serve port number. (default 5000)
   -u, --user_agent string     Custom User Agent
 ```
+
+<a name="tool-examples"></a>
+
+### Examples
+```bash
+# goclone <url>
+goclone https://configtree.co
+```
+
+<a name="package-usage"></a>
+
+## Package usage
+First of all, create a `Project` as such:
+```go
+proj := NewProject(
+  "project_name",         // project name
+  "https://example.com",  // web page to copy
+)
+```
+
+The web page data can, then, be cloned with the `Clone` function as such:
+```go
+Clone(&proj, CloneOptions{
+  IgnoreJS:     false,      // ignore JS files
+  IgnoreCSS:    false,      // ignore CSS files
+  IgnoreImages: false,      // ignore images
+  Cookies:      []string{}, // cookies used to access web page
+  Proxy:        "...",      // proxy to use to access web page
+  UserAgent:    "...",      // user agent to use to access web page
+})
+```
+The data won't be saved to disk immediately, but will be saved in the `proj` variable.
+
+All the additional files (css/js/images) are downloaded in parallel.
+
+Finally, you can save the web page files to disk at `path/to/downloaded/files` as such:
+```go
+proj.Save("path/to/downloaded/files")
+```
+
 
 <a name="contributors"></a>
 
